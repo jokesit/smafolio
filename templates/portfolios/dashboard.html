@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row gap-8">
+    
+    <aside class="w-full md:w-1/3 lg:w-1/4">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 sticky top-4">
+            <div class="text-center">
+                <img src="{{ user.profile.avatar.url }}" class="w-32 h-32 rounded-full mx-auto border-4 border-indigo-50 object-cover mb-4">
+                <h2 class="text-xl font-bold text-slate-800">{{ user.first_name }} {{ user.last_name }}</h2>
+                <p class="text-slate-500 text-sm mb-4">{{ user.email }}</p>
+                
+                <div class="mb-6">
+                    {% if user.profile.is_public %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> เผยแพร่สาธารณะ
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <span class="w-2 h-2 rounded-full bg-gray-500 mr-2"></span> ส่วนตัว
+                        </span>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'edit_profile' %}" class="block w-full py-2 px-4 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                    แก้ไขข้อมูลส่วนตัว
+                </a>
+                
+                <a href="{% url 'public_portfolio' user.username %}" target="_blank" class="block w-full mt-2 py-2 px-4 border border-indigo-100 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-100 transition text-center">
+                    ดูหน้าโปรไฟล์สาธารณะ ↗
+                </a>
+            </div>
+            
+            <hr class="my-6 border-slate-100">
+            
+            <div class="text-sm text-slate-600">
+                <h3 class="font-bold text-slate-800 mb-2">เกี่ยวกับฉัน</h3>
+                <p>{{ user.profile.bio|default:"ยังไม่มีข้อมูลแนะนำตัว" }}</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="grow">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">ผลงานของฉัน ({{ portfolios.count }})</h1>
+            <a href="{% url 'create_portfolio' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                เพิ่มผลงานใหม่
+            </a>
+        </div>
+
+        {% if portfolios %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for item in portfolios %}
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition">
+                    <img src="{{ item.cover_image.url }}" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <span class="text-xs font-bold text-indigo-600 uppercase tracking-wide">{{ item.category.name|default:"ทั่วไป" }}</span>
+                        <h3 class="font-bold text-lg text-slate-800 mt-1 mb-2">{{ item.title }}</h3>
+                        <p class="text-slate-500 text-sm line-clamp-2">{{ item.description }}</p>
+                        <div class="mt-4 flex justify-end space-x-3">
+                            <a href="{% url 'edit_portfolio' item.pk %}" class="text-sm font-medium text-slate-500 hover:text-indigo-600 flex items-center transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                แก้ไข
+                            </a>
+
+                            <a href="{% url 'delete_portfolio' item.pk %}" class="text-sm font-medium text-red-400 hover:text-red-600 flex items-center transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                ลบ
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-slate-500">คุณยังไม่มีผลงานในระบบ</p>
+                <p class="text-slate-400 text-sm mt-1">เริ่มสร้าง Portfolio ของคุณให้โลกเห็นเลย!</p>
+            </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

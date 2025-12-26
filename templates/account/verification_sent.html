@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-12">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-slate-200 text-center">
+
+        <div class="flex justify-center mb-6">
+            <div class="h-16 w-16 flex items-center justify-center rounded-full bg-indigo-50">
+                <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-2xl font-bold text-slate-800 mb-4">
+            {% trans "ยืนยันที่อยู่อีเมลของคุณ" %}
+        </h1>
+
+        <p class="text-slate-600 mb-6 leading-relaxed">
+            เราได้ส่งลิงก์ยืนยันตัวตนไปที่อีเมลของคุณแล้ว:<br>
+            <span class="font-bold text-indigo-600 block mt-2">{{ email }}</span>
+        </p>
+        
+        <p class="text-sm text-slate-400 mb-8">
+            กรุณาตรวจสอบกล่องจดหมาย (Inbox) หรือโฟลเดอร์ขยะ (Spam)
+        </p>
+
+        <div class="border-t border-slate-100 pt-6">
+            <a href="{% url 'account_login' %}" class="text-indigo-600 font-bold hover:text-indigo-800 transition text-sm">
+                ← กลับไปหน้าเข้าสู่ระบบ
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

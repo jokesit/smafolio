@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100">
+    <div class="mb-10 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 mb-4">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+        </div>
+        <h1 class="text-2xl font-black text-slate-800 tracking-tight">แก้ไขผลงาน</h1>
+        <p class="text-slate-500 mt-2 text-sm">อัปเดตข้อมูลหรือเพิ่มเติมรูปภาพกิจกรรม</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-8">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2">{{ field.label }}</label>
+            
+            <div class="mt-1">
+                {% if field.name == 'cover_image' %}
+                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 hover:border-indigo-300 transition-colors duration-300">
+                        {% if field.value %}
+                            <div class="mb-5">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">รูปหน้าปกปัจจุบัน</span>
+                                <div class="relative group overflow-hidden rounded-xl shadow-md">
+                                    <img src="/media/{{ field.value }}" class="h-56 w-full object-cover bg-white transform group-hover:scale-105 transition duration-500">
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="text-center"> 
+                            <label for="{{ field.id_for_label }}" 
+                                class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-indigo-600 text-sm font-bold border-2 border-indigo-100 shadow-sm hover:border-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer w-full sm:w-auto">  
+                                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>คลิกเพื่อเปลี่ยนรูปปก</span>
+                            </label>
+                            <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="hidden file-input-trigger" accept="image/*">
+                            <p class="text-xs text-slate-400 mt-2" id="file-name-{{ field.id_for_label }}"></p>
+                        </div>
+                    </div>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="relative py-4">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                <div class="w-full border-t border-slate-200"></div>
+            </div>
+            <div class="relative flex justify-center">
+                <span class="bg-white px-3 text-sm text-slate-400 font-medium">แกลเลอรีรูปภาพ</span>
+            </div>
+        </div>
+        
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/60">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="font-bold text-lg text-slate-800">รูปภาพเพิ่มเติม</h3>
+                <span class="text-xs font-medium px-2.5 py-1 bg-white border border-slate-200 rounded-full text-slate-500">สูงสุด 4 รูป</span>
+            </div>
+            
+            {{ formset.management_form }}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for f in formset %}
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col h-full relative group card-container">
+                        {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-slate-400 uppercase">รูปที่ {{ forloop.counter }}</span>
+                        </div>
+
+                        <div class="grow mb-4 relative">
+                            {% if f.instance.pk %} 
+                                <div class="relative w-full aspect-4/3 bg-slate-100 rounded-xl overflow-hidden border border-slate-100 image-wrapper transition-all duration-300">
+                                    <img src="{{ f.instance.image.url }}" class="w-full h-full object-cover">
+                                    
+                                    <div class="absolute inset-0 bg-red-500/80 items-center justify-center hidden delete-overlay backdrop-blur-[2px]">
+                                        <div class="text-center text-white">
+                                            <svg class="w-8 h-8 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            <span class="text-sm font-bold">จะถูกลบ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="absolute top-2 right-2 z-10">
+                                    <div class="hidden">
+                                        {{ f.DELETE }} 
+                                    </div>
+                                    
+                                    <label for="{{ f.DELETE.id_for_label }}" 
+                                           class="delete-btn flex items-center justify-center w-9 h-9 bg-white/90 backdrop-blur rounded-full shadow-md cursor-pointer hover:bg-red-50 text-slate-500 hover:text-red-500 border border-transparent hover:border-red-200 transition-all duration-200 transform hover:scale-105"
+                                           title="ลบรูปนี้">
+                                        <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="w-full aspect-4/3 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
+                                    <svg class="w-10 h-10 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span class="text-xs">ยังไม่มีรูปภาพ</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-auto pt-4 border-t border-slate-50 text-center">
+                            <label for="{{ f.image.id_for_label }}" 
+                                class="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl bg-white text-indigo-600 text-xs font-bold border border-indigo-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 shadow-sm hover:shadow transition-all duration-300 cursor-pointer">
+                                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span class="btn-text">{% if f.instance.pk %}เปลี่ยนรูป{% else %}เพิ่มรูปภาพ{% endif %}</span>
+                            </label>
+                            <input type="file" name="{{ f.image.html_name }}" id="{{ f.image.id_for_label }}" class="hidden file-input-trigger" accept="image/*">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-slate-100">
+            <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition duration-200">
+                ยกเลิก
+            </a>
+            <button type="submit" class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
+                บันทึกการแก้ไข
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Style General Inputs
+        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, select, input[type="date"]');
+        inputs.forEach(input => {
+            input.classList.add('w-full', 'px-4', 'py-3', 'bg-slate-50', 'border', 'border-slate-200', 'rounded-xl', 'text-slate-700', 'focus:bg-white', 'focus:ring-2', 'focus:ring-indigo-100', 'focus:border-indigo-500', 'outline-none', 'transition-all', 'duration-200');
+        });
+
+        // 2. Logic จัดการปุ่มลบ (Delete Button)
+        const deleteCheckboxes = document.querySelectorAll('input[type="checkbox"][name$="-DELETE"]');
+        
+        deleteCheckboxes.forEach(checkbox => {
+            // ฟังก์ชันอัปเดต UI ตามสถานะ Checkbox
+            const updateDeleteUI = () => {
+                const card = checkbox.closest('.card-container');
+                const overlay = card.querySelector('.delete-overlay');
+                const btn = card.querySelector('.delete-btn');
+                const btnIcon = btn.querySelector('svg');
+                
+                if (checkbox.checked) {
+                    // สถานะ: ถูกลบ
+                    overlay.classList.remove('hidden'); // แสดง overlay สีแดง
+                    overlay.classList.add('flex');
+                    
+                    // เปลี่ยนปุ่มเป็นสีแดงทึบ (เพื่อบอกว่ากดอีกทีคือยกเลิก)
+                    btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+                    btn.classList.remove('bg-white/90', 'text-slate-500');
+                    
+                    // เปลี่ยนไอคอนเป็น "ย้อนกลับ" (Undo)
+                    btnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />';
+                } else {
+                    // สถานะ: ปกติ
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                    
+                    // คืนค่าปุ่ม
+                    btn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+                    btn.classList.add('bg-white/90', 'text-slate-500');
+                    
+                    // คืนค่าไอคอนถังขยะ
+                    btnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />';
+                }
+            };
+
+            // เรียกใช้ครั้งแรก (กรณีมี error แล้วหน้าเว็บโหลดใหม่ จะได้จำสถานะเดิมได้)
+            updateDeleteUI();
+
+            // ฟัง event เมื่อมีการกดเปลี่ยน
+            checkbox.addEventListener('change', updateDeleteUI);
+        });
+
+        // 3. Logic แสดงชื่อไฟล์เมื่อเลือกรูปใหม่
+        document.addEventListener("change", function(e) {
+            if (e.target.classList.contains("file-input-trigger")) {
+                const fileName = e.target.files[0]?.name;
+                if (fileName) {
+                    const label = document.querySelector(`label[for="${e.target.id}"]`);
+                    if (label) {
+                        label.classList.remove('bg-white', 'text-indigo-600', 'border-indigo-200');
+                        label.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+                        label.innerHTML = `
+                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="truncate max-w-[150px]">${fileName}</span>
+                        `;
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

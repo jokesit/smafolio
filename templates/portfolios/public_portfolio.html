@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-white pb-16">
+    <div class="h-56 bg-linear-to-r from-slate-800 to-indigo-900 w-full relative overflow-hidden">
+        <div class="absolute inset-0 bg-white/5 pattern-dots"></div>
+        <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-10 left-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4">
+        <div class="relative -mt-24 text-center mb-10">
+            <div class="relative inline-block group">
+                <div class="absolute inset-0 bg-indigo-500 rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
+                <img src="{{ owner.profile.avatar.url }}"
+                    class="relative w-44 h-44 rounded-full border-[6px] border-white shadow-2xl object-cover mx-auto bg-white">
+                
+                {% if not owner.profile.is_public %}
+                <span class="absolute bottom-3 right-3 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-full border-2 border-white shadow-sm font-bold flex items-center gap-1"
+                    title="Private Mode">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Private
+                </span>
+                {% endif %}
+            </div>
+
+            <h1 class="text-4xl font-black text-slate-800 mt-6 tracking-tight">{{ owner.first_name }} {{ owner.last_name }}</h1>
+            <p class="text-indigo-600 font-bold text-lg mt-1">@{{ owner.username }}</p>
+
+            <div class="max-w-2xl mx-auto mt-6 text-slate-600 leading-relaxed text-lg font-light">
+                {{ owner.profile.bio|linebreaks }}
+            </div>
+
+            <div class="flex justify-center flex-wrap gap-4 mt-8">
+                {% if owner.profile.github_link %}
+                <a href="{{ owner.profile.github_link }}" target="_blank"
+                    class="inline-flex items-center px-6 py-2.5 rounded-full bg-white text-slate-700 hover:bg-slate-800 hover:text-white transition duration-300 font-medium border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 group">
+                    <svg class="w-5 h-5 mr-2 text-slate-400 group-hover:text-white transition" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    Instagram
+                </a>
+                {% endif %}
+                {% if owner.profile.facebook_link %}
+                <a href="{{ owner.profile.facebook_link }}" target="_blank"
+                    class="inline-flex items-center px-6 py-2.5 rounded-full bg-white text-blue-700 hover:bg-blue-600 hover:text-white transition duration-300 font-medium border border-blue-100 hover:border-blue-600 shadow-sm hover:shadow-lg hover:-translate-y-0.5 group">
+                    <svg class="w-5 h-5 mr-2 text-blue-400 group-hover:text-white transition" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    Facebook
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="container mx-auto px-4 py-8 max-w-7xl"> 
+
+    {% if items %}
+    
+    {% regroup items|dictsort:"category.id" by category as category_list %}
+
+    {% for category in category_list %}
+
+    <div class="mb-20">
+        <div class="flex items-center mb-8 pb-4 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-sm z-10 pt-4">
+            <div class="w-2 h-8 bg-indigo-600 rounded-full mr-4"></div>
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight">
+                {{ category.grouper.name|default:"ผลงานทั่วไป" }}
+            </h2>
+            <span class="ml-4 px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100 shadow-sm">
+                {{ category.list|length }} รายการ
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            
+            {% for item in category.list|dictsortreversed:"event_date" %}
+            <a href="{% url 'portfolio_detail' owner.username item.pk %}" class="block group h-full">
+                <article class="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden border border-slate-100 h-full flex flex-col relative group">
+                    
+                    <div class="relative w-full aspect-3/2 overflow-hidden bg-slate-50">
+                        <img src="{{ item.cover_image.url }}"
+                            class="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out">
+                        
+                        <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm text-xs font-bold text-slate-700 border border-slate-100 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            {{ item.event_date|date:"d M Y" }}
+                        </div>
+                    </div>
+
+                    <div class="p-6 flex flex-col grow">
+                        <h3 class="font-bold text-lg text-slate-800 mb-3 leading-snug group-hover:text-indigo-600 transition line-clamp-2">
+                            {{ item.title }}
+                        </h3>
+                        
+                        <div class="w-12 h-0.5 bg-indigo-500/20 mb-3 rounded-full group-hover:bg-indigo-500 group-hover:w-20 transition-all duration-500"></div>
+
+                        <p class="text-slate-500 text-sm line-clamp-3 mb-5 grow font-light leading-relaxed">
+                            {{ item.description }}
+                        </p>
+                        
+                        <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between text-sm">
+                            <span class="text-slate-400 font-medium group-hover:text-indigo-600 transition text-xs uppercase tracking-wide">Read Details</span>
+                            <span class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-indigo-200">
+                                <svg class="w-4 h-4 transform group-hover:rotate-45 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                </article>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-32 bg-slate-50 rounded-4xl border-2 border-dashed border-slate-200 text-center mx-auto max-w-3xl">
+        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+            <svg class="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 mb-2">Portfolio is Empty</h3>
+        <p class="text-slate-500 max-w-sm">เจ้าของพอร์ตโฟลิโอนี้ยังไม่ได้เพิ่มผลงาน หรือผลงานทั้งหมดถูกตั้งค่าเป็นส่วนตัว</p>
+    </div>
+    {% endif %}
+
+</section>
+{% endblock %}
