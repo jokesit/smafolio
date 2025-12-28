@@ -4,6 +4,7 @@ from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
 from django.conf import settings 
+from urllib.parse import urlparse, parse_qs
 
 # ==========================================
 # 1. ฟังก์ชันช่วยบีบอัดรูปภาพ (Utility Function)
@@ -73,6 +74,10 @@ class PortfolioItem(models.Model):
     # รูปภาพปก
     cover_image = models.ImageField(upload_to='portfolio_covers/')
     
+    # เพิ่ม Field สำหรับเก็บลิงก์วิดีโอ
+    video_link = models.URLField(blank=True, null=True, help_text="รองรับลิงก์จาก YouTube")
+
+
     # วันที่
     event_date = models.DateField(null=True, blank=True, help_text="วันที่ทำกิจกรรม/ผลงาน")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -102,6 +107,37 @@ class PortfolioItem(models.Model):
                 self.cover_image = compress_image(self.cover_image)
 
         super().save(*args, **kwargs)
+
+    #  เพิ่มฟังก์ชันแปลงลิงก์ YouTube ให้เป็น Embed URL
+    def get_embed_url(self):
+        if not self.video_link:
+            return None
+
+        try:
+            url_data = urlparse(self.video_link)
+            video_id = None
+
+            if url_data.hostname == 'youtu.be':
+                video_id = url_data.path.lstrip('/')
+            elif url_data.hostname in ['www.youtube.com', 'youtube.com']:
+                if url_data.path == '/watch':
+                    video_id = parse_qs(url_data.query).get('v', [None])[0]
+                elif url_data.path.startswith('/embed/'):
+                    video_id = url_data.path.split('/')[2]
+                elif url_data.path.startswith('/shorts/'):
+                    video_id = url_data.path.split('/')[2]
+
+            if video_id:
+                # ใช้ youtube-nocookie + เพิ่ม params ป้องกัน error
+                return (
+                    f"https://www.youtube-nocookie.com/embed/{video_id}"
+                    "?rel=0&modestbranding=1"
+                )
+
+        except Exception as e:
+            print(f"YouTube URL error: {e}")
+
+        return None
 
 
 # for upload many image

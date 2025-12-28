@@ -43,10 +43,33 @@
                             <p class="text-xs text-slate-400 mt-2" id="file-name-{{ field.id_for_label }}"></p>
                         </div>
                     </div>
+
+                {% elif field.name == 'video_link' %}
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400 group-focus-within:text-red-500 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                            </svg>
+                        </div>
+                        {{ field }}
+                    </div>
+
                 {% else %}
                     {{ field }}
                 {% endif %}
             </div>
+
+            {% if field.help_text and field.name != 'cover_image' %}
+                {% if field.name == 'video_link' %}
+                     <p class="mt-2 text-xs text-slate-400 flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        รองรับลิงก์จาก YouTube (เช่น https://youtu.be/...)
+                     </p>
+                {% else %}
+                    <p class="mt-2 text-xs text-slate-400">{{ field.help_text }}</p>
+                {% endif %}
+            {% endif %}
+
         </div>
         {% endfor %}
 
@@ -142,17 +165,22 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Style General Inputs
-        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, select, input[type="date"]');
+        // 1. Style General Inputs (อัปเดตให้รองรับ input type="url")
+        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="url"], textarea, select, input[type="date"]');
         inputs.forEach(input => {
             input.classList.add('w-full', 'px-4', 'py-3', 'bg-slate-50', 'border', 'border-slate-200', 'rounded-xl', 'text-slate-700', 'focus:bg-white', 'focus:ring-2', 'focus:ring-indigo-100', 'focus:border-indigo-500', 'outline-none', 'transition-all', 'duration-200');
+            
+            // เพิ่ม Padding ซ้ายพิเศษสำหรับช่อง Video link
+            if (input.type === 'url') {
+                input.classList.remove('px-4');
+                input.classList.add('pl-11', 'pr-4');
+            }
         });
 
-        // 2. Logic จัดการปุ่มลบ (Delete Button)
+        // 2. Logic จัดการปุ่มลบ (Delete Button) - เหมือนเดิม
         const deleteCheckboxes = document.querySelectorAll('input[type="checkbox"][name$="-DELETE"]');
         
         deleteCheckboxes.forEach(checkbox => {
-            // ฟังก์ชันอัปเดต UI ตามสถานะ Checkbox
             const updateDeleteUI = () => {
                 const card = checkbox.closest('.card-container');
                 const overlay = card.querySelector('.delete-overlay');
@@ -160,34 +188,20 @@
                 const btnIcon = btn.querySelector('svg');
                 
                 if (checkbox.checked) {
-                    // สถานะ: ถูกลบ
-                    overlay.classList.remove('hidden'); // แสดง overlay สีแดง
+                    overlay.classList.remove('hidden');
                     overlay.classList.add('flex');
-                    
-                    // เปลี่ยนปุ่มเป็นสีแดงทึบ (เพื่อบอกว่ากดอีกทีคือยกเลิก)
                     btn.classList.add('bg-red-500', 'text-white', 'border-red-500');
                     btn.classList.remove('bg-white/90', 'text-slate-500');
-                    
-                    // เปลี่ยนไอคอนเป็น "ย้อนกลับ" (Undo)
                     btnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />';
                 } else {
-                    // สถานะ: ปกติ
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
-                    
-                    // คืนค่าปุ่ม
                     btn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
                     btn.classList.add('bg-white/90', 'text-slate-500');
-                    
-                    // คืนค่าไอคอนถังขยะ
                     btnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />';
                 }
             };
-
-            // เรียกใช้ครั้งแรก (กรณีมี error แล้วหน้าเว็บโหลดใหม่ จะได้จำสถานะเดิมได้)
             updateDeleteUI();
-
-            // ฟัง event เมื่อมีการกดเปลี่ยน
             checkbox.addEventListener('change', updateDeleteUI);
         });
 
@@ -196,8 +210,17 @@
             if (e.target.classList.contains("file-input-trigger")) {
                 const fileName = e.target.files[0]?.name;
                 if (fileName) {
+                    // หารหัส ID ของ label ที่คู่กับ input นี้
                     const label = document.querySelector(`label[for="${e.target.id}"]`);
-                    if (label) {
+                    // หา tag p ที่เอาไว้แสดงชื่อไฟล์ (เฉพาะส่วน cover image)
+                    const nameDisplay = document.getElementById(`file-name-${e.target.id}`);
+
+                    if (nameDisplay) {
+                         // กรณีเป็น Cover Image (แบบ Edit) แสดงชื่อไฟล์ใต้ปุ่ม
+                        nameDisplay.textContent = `เลือกไฟล์: ${fileName}`;
+                        nameDisplay.classList.add('text-indigo-600', 'font-medium');
+                    } else if (label) {
+                        // กรณีเป็น Gallery (เหมือน Create) เปลี่ยนปุ่มเป็นสีเขียว
                         label.classList.remove('bg-white', 'text-indigo-600', 'border-indigo-200');
                         label.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
                         label.innerHTML = `

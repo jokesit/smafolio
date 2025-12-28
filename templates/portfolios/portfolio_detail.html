@@ -33,12 +33,36 @@
             {{ item.title }}
         </h1>
         
-        <div class="prose prose-lg prose-indigo max-w-none text-slate-600 leading-relaxed font-light">
+        <div class="prose prose-lg prose-indigo max-w-none text-slate-600 leading-relaxed font-light mb-12">
             {{ item.description|linebreaksbr|cut:"<br /><br />"|safe }}
         </div>
 
+        {% if item.video_link %}
+        <div class="mt-12 pt-10 border-t border-slate-100">
+            <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                </svg>
+                วิดีโอกิจกรรม
+            </h3>
+            
+            <div class="relative w-full overflow-hidden rounded-2xl shadow-lg border border-slate-200 bg-black" style="padding-bottom: 56.25%;">
+                <iframe
+                    class="absolute top-0 left-0 w-full h-full"
+                    src="{{ item.get_embed_url }}"
+                    frameborder="0"
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <p>{{item.get_embed_url}}</p>
+        </div>
+        {% endif %}
+
         {% if item.images.all %}
-        <div class="mt-16 pt-10 border-t border-slate-100">
+        <div class="mt-12 pt-10 border-t border-slate-100">
             <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
                 <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
