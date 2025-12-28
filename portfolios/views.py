@@ -1,3 +1,7 @@
+import base64 # ✅ เพิ่ม
+import qrcode # ✅ เพิ่ม
+from django.urls import reverse # ✅ เพิ่ม
+from io import BytesIO
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
@@ -8,6 +12,10 @@ from .forms import PortfolioItemForm
 # Import Form จาก users app
 from users.forms import UserUpdateForm, ProfileUpdateForm
 from django.forms import inlineformset_factory
+from weasyprint import HTML
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+
 
 
 User = get_user_model()
@@ -175,3 +183,67 @@ def portfolio_detail(request, username, pk):
             return render(request, '404_private.html', status=404)
 
     return render(request, 'portfolios/portfolio_detail.html', {'item': item})
+
+
+
+@login_required
+def download_portfolio_pdf(request):
+    """สร้างไฟล์ PDF Portfolio พร้อม QR Code"""
+    user = request.user
+    
+    try:
+        profile = user.profile  
+    except:
+        profile = None
+
+    items = PortfolioItem.objects.filter(owner=user).order_by('-event_date')
+
+    # ==========================================
+    # ✅ 1. สร้าง QR Code
+    # ==========================================
+    
+    # สร้าง URL ของหน้า Public Portfolio แบบเต็ม (รวม http://domain.com)
+    public_url = request.build_absolute_uri(reverse('public_portfolio', args=[user.username]))
+    
+    # สร้างรูป QR Code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M, # M = กู้คืนข้อมูลได้ 15% (เผื่อปริ้นท์ไม่ชัด)
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(public_url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # บันทึกลง Buffer (Memory) แทนการลงไฟล์
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    
+    # แปลงเป็น Base64 string เพื่อส่งไปแปะใน HTML ได้เลย
+    qr_image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+
+    # ==========================================
+    # 2. เตรียม Context และ Render
+    # ==========================================
+    context = {
+        'user': user,
+        'profile': profile,
+        'items': items,
+        'request': request,
+        'qr_code': qr_image_base64, # ✅ ส่ง QR Code ไปที่ Template
+    }
+
+    html_string = render_to_string('portfolios/pdf_template.html', context)
+    base_url = request.build_absolute_uri('/')
+
+    html = HTML(string=html_string, base_url=base_url)
+    pdf_file = html.write_pdf()
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    filename = f"Portfolio_{user.username}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    
+    return response

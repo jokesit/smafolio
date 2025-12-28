@@ -1,0 +1,276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio - {{ user.get_full_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. ตั้งค่าหน้ากระดาษ (Page Setup) --- */
+        @page {
+            size: A4;
+            /* เว้นขอบบนไว้สำหรับ Header, ขอบล่างสำหรับ Footer (ถ้ามี) */
+            margin-top: 25mm; 
+            margin-bottom: 15mm;
+            margin-left: 15mm;
+            margin-right: 15mm;
+
+            /* สั่งให้เอา element ชื่อ 'header' ไปใส่ไว้ด้านบนสุดของทุกหน้า */
+            @top-center {
+                content: element(header);
+                width: 100%;
+            }
+        }
+
+        /* --- 2. ข้อยกเว้นสำหรับหน้าปก (Cover Page) --- */
+        /* หน้าปกชื่อ 'cover' จะไม่มี margin และไม่มี header */
+        @page cover {
+            margin: 0;
+            @top-center { content: none; }
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            color: #334155;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- 3. Running Header (ส่วนหัวที่จะไปโผล่ทุกหน้า) --- */
+        .header-bar {
+            /* คำสั่งสำคัญ: ย้าย div นี้ไปเป็น running element ชื่อ 'header' */
+            position: running(header);
+            
+            /* จัดสไตล์ให้สวยงาม กระชับ */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 2px solid #e2e8f0; /* เส้นคั่นบางๆ */
+            padding-bottom: 8px;
+            margin-bottom: 0; /* ไม่ต้องดันเนื้อหา เพราะมันอยู่ใน margin */
+            width: 100%;
+            background: white;
+        }
+
+        .header-left {
+            font-size: 14px; /* ขนาดตัวอักษรไม่ใหญ่เกินไป */
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-right {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* --- 4. หน้าปก (Cover Page Styles) --- */
+        .cover-page {
+            /* ระบุว่าหน้านี้คือหน้า cover (เพื่อไป link กับ @page cover ด้านบน) */
+            page: cover; 
+            
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            page-break-after: always;
+        }
+
+        /* ... (สไตล์หน้าปกเดิม คงไว้เหมือนเดิม) ... */
+        .cover-border { position: absolute; top: 15mm; bottom: 15mm; left: 15mm; right: 15mm; border: 1px solid #6366f1; z-index: 0; }
+        .cover-inner-border { position: absolute; top: 16mm; bottom: 16mm; left: 16mm; right: 16mm; border: 1px solid #e0e7ff; z-index: 0; }
+        .profile-img-container { width: 180px; height: 180px; border-radius: 50%; overflow: hidden; border: 6px solid #fff; box-shadow: 0 15px 20px -5px rgba(0,0,0,0.1); margin-bottom: 30px; z-index: 1; background-color: #e2e8f0; }
+        .profile-img { width: 100%; height: 100%; object-fit: cover; }
+        .cover-title { font-size: 64px; font-weight: 800; color: #1e293b; letter-spacing: 3px; margin: 0; z-index: 1; text-transform: uppercase; line-height: 1; }
+        .cover-subtitle { font-size: 20px; color: #64748b; margin-top: 10px; z-index: 1; font-weight: 300; }
+        .cover-name { font-size: 32px; font-weight: 600; color: #4f46e5; margin-top: 25px; z-index: 1; }
+        .cover-contact { margin-top: 50px; font-size: 13px; color: #475569; z-index: 1; line-height: 1.8; background: #fff; padding: 12px 25px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+        /* --- 5. Content Layout --- */
+        
+        /* รายการกิจกรรม */
+        .item-container {
+            /* ขึ้นหน้าใหม่เสมอ */
+            page-break-before: always;
+            
+            /* ไม่ต้อง padding เยอะ เพราะเรามี margin page แล้ว */
+            padding-top: 10px; 
+            padding-bottom: 20px;
+        }
+
+        /* ข้อยกเว้น: รายการแรกต่อจากหน้าปก ไม่ต้องขึ้นหน้าใหม่ (เพราะหน้าปกจบแล้วมันขึ้นใหม่อัตโนมัติ) */
+        .item-container:first-of-type {
+            page-break-before: auto;
+        }
+
+        .item-header-group {
+            margin-bottom: 20px;
+            /* เอาเส้นขีดออก เพราะมีเส้นที่ Header บนสุดแล้ว เดี๋ยวจะลายตา */
+            /* border-bottom: 1px solid #f1f5f9; */ 
+        }
+
+        .item-title { font-size: 22px; font-weight: 700; color: #1e293b; line-height: 1.3; margin-bottom: 5px; }
+        .item-meta-row { display: flex; align-items: center; gap: 10px; }
+        .item-badge { font-size: 11px; font-weight: 600; color: #4f46e5; background-color: #eef2ff; padding: 3px 8px; border-radius: 4px; }
+        .item-date { font-size: 12px; color: #64748b; font-weight: 500; display: flex; align-items: center; }
+        .item-desc { font-size: 14px; text-align: justify; color: #334155; margin-bottom: 20px; white-space: pre-wrap; }
+        
+        .main-image { 
+            width: 100%; 
+            height: 320px; /* ปรับความสูงให้พอดี ไม่กินที่เกินไป */
+            object-fit: cover; 
+            border-radius: 6px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            border: 1px solid #f1f5f9; 
+        }
+
+        .gallery-section-header { 
+            margin-top: 25px; margin-bottom: 12px; display: flex; align-items: center; 
+            background: #f8fafc; padding: 8px 12px; border-radius: 6px; border-left: 3px solid #4f46e5; 
+            page-break-after: avoid; 
+        }
+        .gallery-section-title { font-size: 14px; font-weight: 700; color: #1e293b; }
+        
+        .item-grid { display: flex; flex-wrap: wrap; gap: 10px; page-break-inside: avoid; }
+        .gallery-image { width: 48%; height: 150px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0; }
+
+        .video-link { 
+            font-size: 11px; color: #b91c1c; margin-bottom: 15px; padding: 6px 10px; 
+            background: #fef2f2; border-radius: 4px; border: 1px solid #fecaca; display: inline-flex; align-items: center; 
+        }
+        /* เพิ่ม Style สำหรับ QR Code Box */
+    .qr-code-container {
+        margin-top: 40px; /* เว้นระยะจาก Contact info */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1;
+    }
+
+    .qr-img {
+        width: 100px;
+        height: 100px;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+
+    .qr-text {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <div class="header-left">
+            <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" style="width:16px; height:16px; margin-right:8px; opacity:0.8;">
+            ผลงานและกิจกรรม
+        </div>
+        <div class="header-right">
+            แฟ้มสะสมผลงาน: {{ user.get_full_name }}
+        </div>
+    </div>
+
+
+    <div class="cover-page">
+        <div class="cover-border"></div>
+        <div class="cover-inner-border"></div>
+        
+        <div class="profile-img-container">
+            {% if profile.avatar %}
+                <img src="{{ request.scheme }}://{{ request.get_host }}{{ profile.avatar.url }}" class="profile-img">
+            {% else %}
+                <div style="width:100%; height:100%; background:#cbd5e1; display:flex; align-items:center; justify-content:center; color:#fff; font-size:60px;">
+                    {{ user.first_name|slice:":1" }}
+                </div>
+            {% endif %}
+        </div>
+
+        <h1 class="cover-title">Portfolio</h1>
+        <div class="cover-subtitle">แฟ้มสะสมผลงาน</div>
+        
+        <h2 class="cover-name">{{ user.first_name }} {{ user.last_name }}</h2>
+        
+        <div class="cover-contact">
+            <div style="margin-bottom:5px;"><strong>Email:</strong> {{ user.email }}</div>
+            {% if profile.bio %}<div style="margin-bottom:5px;">{{ profile.bio }}</div>{% endif %}
+            {% if profile.github_link %}<div><strong>Github:</strong> {{ profile.github_link }}</div>{% endif %}
+        </div>
+
+        <div class="qr-code-container">
+            <img src="data:image/png;base64,{{ qr_code }}" class="qr-img">
+            <div class="qr-text">Scan to view online</div>
+        </div>
+
+    </div>
+
+
+    {% for item in items %}
+    <div class="item-container">
+        
+        <div class="item-header-group">
+            <div class="item-title">{{ item.title }}</div>
+            <div class="item-meta-row">
+                <span class="item-badge">{{ item.category.name|default:"General" }}</span>
+                {% if item.event_date %}
+                    <span class="item-date">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2693/2693507.png" style="width:12px; height:12px; margin-right:5px; opacity:0.6;">
+                        {{ item.event_date|date:"d F Y" }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="item-desc">
+            {{ item.description }}
+        </div>
+
+        {% if item.cover_image %}
+            <img src="{{ request.scheme }}://{{ request.get_host }}{{ item.cover_image.url }}" class="main-image">
+        {% endif %}
+
+        {% if item.video_link %}
+        <div>
+            <div class="video-link">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" style="width:14px; height:14px; margin-right:6px;">
+                <b>Video:</b>&nbsp;{{ item.video_link }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if item.images.all %}
+            <div class="gallery-section-header">
+                <img src="https://cdn-icons-png.flaticon.com/512/833/833281.png" style="width:16px; height:16px; margin-right:8px;">
+                <span class="gallery-section-title">ภาพถ่ายเพิ่มเติม</span>
+            </div>
+
+            <div class="item-grid">
+                {% for img in item.images.all %}
+                    <img src="{{ request.scheme }}://{{ request.get_host }}{{ img.image.url }}" class="gallery-image">
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </div>
+    {% endfor %}
+
+</body>
+</html>
