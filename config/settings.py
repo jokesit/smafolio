@@ -11,10 +11,12 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
+
+# ถ้าใน .env เป็น 'on' จะได้ True, ถ้าเป็น 'off' จะได้ False
 DEBUG = env("DEBUG") == "on"
 
-ALLOWED_HOSTS = []
-
+# รับค่าเป็น list คั่นด้วยจุลภาค (เช่น localhost,127.0.0.1)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # --------------------------------------------------
 # Applications
@@ -35,15 +37,12 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "tailwind",
     "theme",
-    "django_browser_reload",
 
     # Local apps
     "users.apps.UsersConfig",
     "portfolios.apps.PortfoliosConfig",
 ]
 
-SITE_ID = 1
-TAILWIND_APP_NAME = "theme"
 
 
 # --------------------------------------------------
@@ -61,13 +60,53 @@ MIDDLEWARE = [
     # allauth
     "allauth.account.middleware.AccountMiddleware",
 
-    # browser reload
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
+
+# ถ้าอยู่ในโหมด Debug ให้เปิด Browser Reload
+if DEBUG:
+    INSTALLED_APPS.append("django_browser_reload")
+    MIDDLEWARE.append("django_browser_reload.middleware.BrowserReloadMiddleware")
+else:
+    # ถ้าขึ้น Production แนะนำให้ใช้ Whitenoise ช่วยเสิร์ฟไฟล์ Static (Optional)
+    # MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+    pass
+
+
+# ==========================================
+# 3. Security Settings (Production Only)
+# ==========================================
+if not DEBUG:
+    # 1. บังคับใช้ HTTPS
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # 2. ป้องกัน XSS และ Sniffing
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True  # (Browser รุ่นใหม่เริ่มเลิกใช้แล้ว แต่ใส่กันไว้ก่อนได้)
+
+    # 3. HTTP Strict Transport Security (HSTS)
+    SECURE_HSTS_SECONDS = 31536000  # 1 ปี
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = False  # ✅ เริ่มต้น False ตามที่คุณแนะนำ (ปลอดภัยกว่า)
+
+    # 4. Proxy Handling (สำคัญมากสำหรับ Nginx, Railway, Render)
+    # บอก Django ว่าถ้า Header นี้มาเป็น https ให้ถือว่าปลอดภัยแล้ว
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+# ==========================================
+# Global Security (ใช้ทั้ง Dev และ Prod)
+# ==========================================
+# ป้องกันการถูกฝัง Iframe จากเว็บอื่น (แต่ยังให้ YouTube ฝังได้ถ้าเราเขียนโค้ดถูก)
+X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# จัดการ Referrer เมื่อกดลิงก์ออกไปข้างนอก (เพื่อให้ YouTube ตรวจสอบสิทธิ์ได้)
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 
 # --------------------------------------------------
-# URLs / Templates
+# 4. URLs & Templates
 # --------------------------------------------------
 ROOT_URLCONF = "config.urls"
 
@@ -86,11 +125,14 @@ TEMPLATES = [
     },
 ]
 
+
+
+
 WSGI_APPLICATION = "config.wsgi.application"
 
 
 # --------------------------------------------------
-# Database
+# 5 Database
 # --------------------------------------------------
 DATABASES = {
     "default": env.db(),
@@ -98,7 +140,7 @@ DATABASES = {
 
 
 # --------------------------------------------------
-# Password validation
+# 6 Password validation
 # --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -109,7 +151,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # --------------------------------------------------
-# Internationalization
+# 7 Internationalization
 # --------------------------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -118,9 +160,11 @@ USE_TZ = True
 
 
 # --------------------------------------------------
-# Static / Media
+# 8 Static / Media
 # --------------------------------------------------
 STATIC_URL = "/static/"
+# จำเป็นสำหรับ Production (คำสั่ง collectstatic จะรวมไฟล์มาที่นี่)
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -133,7 +177,7 @@ AUTH_USER_MODEL = "users.User"
 
 
 # --------------------------------------------------
-# Auth / Redirect
+#9  Auth / Redirect
 # --------------------------------------------------
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "home"
@@ -144,8 +188,12 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
+SITE_ID = 1
+TAILWIND_APP_NAME = "theme"
+
+
 # ==================================================
-# 🔐 django-allauth (NEW STYLE – CORRECT & STABLE)
+# 10 django-allauth (NEW STYLE – CORRECT & STABLE)
 # ==================================================
 
 # ใช้ Email + Password เท่านั้น
@@ -187,6 +235,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "jokesittipong@gmail.com"
+
+# ดึงค่าจาก .env แทนการ Hardcode (ปลอดภัยกว่า)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_AUTHEN")
-DEFAULT_FROM_EMAIL = "Smafolio <jokesittipong@gmail.com>"
+DEFAULT_FROM_EMAIL = f"Smafolio <{EMAIL_HOST_USER}>"
